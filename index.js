@@ -4,6 +4,8 @@ const CURRENCY = 'руб.';
 const STATUS_IN_LIMIT = 'все хорошо';
 const STATUS_OUT_OF_LIMIT = 'все плохо';
 const STATUS_OUT_OF_LIMIT_CLASSNAME = 'status_red';
+const STORAGE_LABEL_LIMIT = 'limit';
+const STORAGE_LABEL_EXPENSES = 'expenses';
 
 const inputNode = document.querySelector('.js-expenses-amount-input');
 const buttonNode = document.querySelector('.js-expenses-amount-btn');
@@ -20,7 +22,13 @@ const popupInputNode = document.querySelector('.js-popup-input');
 const popupSubmitNode = document.querySelector('.js-popup-submit');
 const popupCloseNode = document.querySelector('.js-popup-close');
 
+const expensesFromStorageString = localStorage.getItem(STORAGE_LABEL_EXPENSES);
+const expensesFromStorage = JSON.parse(expensesFromStorageString);
 let expenses = [];
+if (Array.isArray(expensesFromStorage)) {
+  expenses = expensesFromStorage;
+}
+render();
 
 init();
 
@@ -58,9 +66,17 @@ function init() {
     render();
 };
 
+function saveExpensesToLocalStorage() {
+  const expensesString = JSON.stringify(expenses);
+  localStorage.setItem(STORAGE_LABEL_EXPENSES, expensesString);
+}
+
 function trackExpense(expense) {
     expenses.push({ category: currentCategoryNode.value, amount: expense });
+    saveExpensesToLocalStorage();
 }
+
+
 
 function getExpenseFromUser() {
     if (!inputNode.value || currentCategoryNode.value === 'Категория') {
@@ -68,9 +84,17 @@ function getExpenseFromUser() {
     }
 
     const expense = parseInt(inputNode.value);
+    if (isNaN(expense)) {
+      alert("Введите корректную сумму!");
+      return null;
+  }
 
-    clearInput();
-  
+  if (expense <= 0) {
+    alert("Введите положительное значение для расхода");
+    return null;
+}
+
+    clearInput();  
     return expense;
   }
 
@@ -154,13 +178,14 @@ function getExpenseFromUser() {
   }
   
   function saveLimitToLocalStorage(limit) {
-    localStorage.setItem('limit', limit.toString());
+    localStorage.setItem(STORAGE_LABEL_LIMIT, limit.toString());
   }
   
+const newLocal = 'limit';
   function loadLimitFromLocalStorage() {
-    const storedLimit = localStorage.getItem('limit');
+    const storedLimit = localStorage.getItem(STORAGE_LABEL_LIMIT);
     if (storedLimit) {
       return parseInt(storedLimit);
     }
     return LIMIT;
-  }
+    }
